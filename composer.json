@@ -2,6 +2,7 @@
     "require": {
         "phpoffice/phpspreadsheet": "^5.3",
         "openspout/openspout": "^4.25",
-        "vlucas/phpdotenv": "^5.6"
+        "vlucas/phpdotenv": "^5.6",
+        "dompdf/dompdf": "^3.1"
     }
 }
