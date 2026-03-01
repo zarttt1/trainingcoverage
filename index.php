@@ -88,7 +88,7 @@ switch ($action) {
         elseif ($action === 'employee_filter_options') $employee->filterOptions();
         elseif ($action === 'employee_history') $employee->history();
         elseif ($action === 'employee_history_search') $employee->historySearch();
-        elseif ($action === 'export_employee') $employee->exportHistory();
+        elseif ($action === 'export_employee') $employee->exportHistoryPdf();
         break;
 
     // --- USERS ---

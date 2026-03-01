@@ -4,6 +4,8 @@
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Writer\Pdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 require_once __DIR__ . '/../models/Employee.php';
 require_once __DIR__ . '/../models/Training.php';
 
@@ -275,89 +277,36 @@ class EmployeeController {
         return ob_get_clean();
     }
 
-    public function exportHistory() {
-        $this->checkAuth();
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($id === 0) exit("Invalid ID");
+public function exportHistoryPdf() {
+    $this->checkAuth();
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    
+    // Pastikan data user dan history diambil sebelum ob_start()
+    $user = $this->empModel->getEmployeeById($id);
+    $history = $this->empModel->getTrainingHistory($id, '', 1, 1000);
 
-        $user = $this->empModel->getEmployeeById($id);
-        if (!$user) exit("Employee not found");
+    if (!$user) die("Employee not found.");
 
-        $history = $this->empModel->getTrainingHistory($id, '', 1, 1000); 
+    // Mulai capture output HTML
+    ob_start();
+    require 'app/views/pdf_report_template.php'; 
+    $html = ob_get_clean();
 
-        $templatePath = __DIR__ . '/../../uploads/Employee Reports.xlsx';
-        if (!file_exists($templatePath)) exit("Template not found at: $templatePath");
+    $options = new \Dompdf\Options();
+    $options->set('isHtml5ParserEnabled', true);
+    $options->set('isRemoteEnabled', true);
 
-        $spreadsheet = IOFactory::load($templatePath);
-        $sheet = $spreadsheet->getActiveSheet();
+    $dompdf = new \Dompdf\Dompdf($options);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
 
-        $sheet->setCellValue('C7', ': ' . $user['index_karyawan']);
-        $sheet->setCellValue('C8', ': ' . $user['nama_karyawan']);
-        $sheet->setCellValue('C9', ': ' . ($user['bu'] ?? '-'));
-        $sheet->setCellValue('C10', ': ' . ($user['func'] ?? '-'));
-        $sheet->setCellValue('C11', ': ' . ($user['func2'] ?? '-'));
+    // Hapus buffer agar tidak ada spasi/error yang masuk ke PDF
+    if (ob_get_length()) ob_end_clean();
 
-        $row = 14;
-        $no = 1;
-
-        if (!empty($history['data'])) {
-            foreach ($history['data'] as $h) {
-                $sheet->setCellValue('A' . $row, $no);
-                $sheet->setCellValue('B' . $row, $h['nama_training']);
-                $sheet->setCellValue('C' . $row, date('d-M-Y', strtotime($h['date_start'])));
-                $sheet->setCellValue('D' . $row, $h['credit_hour']);      // Kolom Kredit Hours
-                $sheet->setCellValue('E' . $row, $h['instructor_name']); // Kolom Trainers
-                $sheet->setCellValue('F' . $row, $h['lembaga']);         // Kolom Lembaga
-                $sheet->setCellValue('G' . $row, $h['training_type']);   // Kolom Type
-                $sheet->setCellValue('H' . $row, $h['method']);          // Kolom Method
-                $sheet->setCellValue('I' . $row, $h['pre']);             // Kolom Pre-Test
-                $sheet->setCellValue('J' . $row, $h['post']);            // Kolom Post-Test
-
-                $sheet->getStyle("A$row:J$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                
-                $sheet->getStyle("A$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle("C$row:J$row")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-                $row++;
-                $no++;
-            }
-        }
-
-        $startWatermark = $row;
-        $endWatermark   = $row + 1;
-
-        $sheet->mergeCells("A$startWatermark:J$endWatermark");
-        $sheet->setCellValue("A$startWatermark", "Created By Dashboard Training Coverage System");
-
-        $sheet->getStyle("A$startWatermark:J$endWatermark")->applyFromArray([
-            'font' => [
-                'italic' => true,
-                'size'   => 10,
-                'color'  => ['argb' => 'FF555555'],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                ],
-            ],
-        ]);
-
-        $cleanName = preg_replace('/[^a-zA-Z0-9]/', '_', $user['nama_karyawan']);
-        $filename = "Employee_Reports_" . $cleanName . ".xlsx";
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="'. $filename .'"');
-        header('Cache-Control: max-age=0');
-
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('php://output');
-        exit;
-    }
-
+    $dompdf->stream("Employee_Report_" . str_replace(' ', '_', $user['nama_karyawan']) . ".pdf", ["Attachment" => true]);
+    exit;
+}
     public function deleteTraining() {
         $this->checkAuth();
 
