@@ -170,6 +170,7 @@ if (!isset($logs)) {
                             <button class="log-tab" onclick="filterLogs('New', this)">New</button>
                             <button class="log-tab" onclick="filterLogs('Duplicate', this)">Duplicate</button>
                             <button class="log-tab" onclick="filterLogs('Warning', this)">Warning</button>
+                            <button class="log-tab" onclick="filterLogs('Conflict', this)">Conflict</button>
                         </div>
                         <span style="font-size:11px; font-weight:normal; color:#888;"><?php echo count($logs); ?> Events Logged</span>
                     </div>

@@ -74,13 +74,6 @@ class Importer {
         return ($matches / $minWords) > 0.65;
     }
 
-    private function generateConflictIndex($originalIdx, $name) {
-        $parts = explode(' ', trim($name));
-        $suffix = preg_replace('/[^a-zA-Z0-9]/', '', $parts[0] ?? 'Dup');
-        $suffix = substr($suffix, 0, 10);
-        return $originalIdx . '_' . $suffix;
-    }
-
     public function processFile($filePath, $ext, $username = 'System', $originalName = null) {
         ini_set('memory_limit', '1024M');
         set_time_limit(600);
@@ -215,24 +208,18 @@ class Importer {
                             }
 
                         } else {
-                            // Mismatch (Conflict) -> Fork IT!
-                            $forkedIdx = $this->generateConflictIndex($idx, $name);
-                            $forkedKey = strtolower($forkedIdx);
-
-                            if (isset($kar[$forkedKey])) {
-                                $kid = $kar[$forkedKey]['id'];
-                            } else {
-                                $insKar->execute([$forkedIdx, $name]);
-                                $kid = $this->db->lastInsertId();
-                                $kar[$forkedKey] = [
-                                    'id' => $kid, 
-                                    'name' => strtolower(trim(preg_replace('/\s+/', ' ', $name)))
-                                ];
-                                
-                                $countConflict++;
-                                $rowStatus = 'Conflict';
-                                $rowMsg[] = "Identity Conflict: ID '$idx' is '$dbName' in DB. Forked '$name' to ID '$forkedIdx'.";
-                            }
+                            // Mismatch (Conflict) -> Tolak data, beri flag error, dan lewati baris ini
+                            $countConflict++;
+                            $countSkip++;
+                            $rowStatus = 'Conflict';
+                            $rowMsg[] = "Duplicate Index: Index '$idx' sudah terdaftar atas nama '$dbName'. Gagal memasukkan '$name'.";
+                            
+                            $logs[] = [
+                                'row' => $excelRow, 
+                                'status' => $rowStatus, 
+                                'msg' => implode(' | ', $rowMsg)
+                            ];
+                            continue;
                         }
                     } else {
                         // Case B: Completely New ID
