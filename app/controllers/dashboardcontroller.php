@@ -10,9 +10,14 @@ class DashboardController {
         $this->trainingModel = new Training($pdo);
     }
 
-    public function index() {
+public function index() {
         if (!isset($_SESSION['user_id'])) {
-            header("Location: index.php");
+            header("Location: index.php?action=show_login");
+            exit();
+        }
+
+        if (($_SESSION['role'] ?? '') === 'employee') {
+            header("Location: index.php?action=employee_dashboard");
             exit();
         }
 
