@@ -73,6 +73,21 @@ switch ($action) {
         elseif ($action === 'export_session') $report->exportSession();
         break;
 
+    // --- PEOPLE DEVELOPMENT ---
+    case 'peopledev_dashboard':
+    case 'peopledev_employees':
+    case 'peopledev_history':
+        require_once 'app/controllers/PeopleDevController.php';
+        $peopleDev = new PeopleDevController($pdo);
+
+        if ($action === 'peopledev_dashboard') {
+            $peopleDev->index();
+        } elseif ($action === 'peopledev_employees') {
+            $peopleDev->employeeReports();
+        } elseif ($action === 'peopledev_history') {
+            $peopleDev->employeeHistory();
+        }
+        break;
     // --- EMPLOYEES ---
     case 'employee_dashboard':
         require_once 'app/controllers/EmployeeDashboardController.php';

@@ -21,6 +21,8 @@ class User {
             $index = $data['username'];
             $nama = $data['nama'];
             $password = $data['password'];
+            $role = isset($data['role']) ? $data['role'] : 'employee'; 
+            
             $hashed = password_hash($password, PASSWORD_DEFAULT);
 
             $stmtKar = $this->db->prepare("SELECT id_karyawan FROM karyawan WHERE index_karyawan = ?");
@@ -39,14 +41,16 @@ class User {
                 $id_karyawan = $this->db->lastInsertId();
             }
 
+            // PERUBAHAN DI SINI: Ubah 'employee' menjadi placeholder :role
             $stmtUser = $this->db->prepare("
                 INSERT INTO users (user_id, username, password, role, status, requires_password_change, id_karyawan) 
-                VALUES (UUID(), :user, :pass, 'employee', :status, 0, :id_kar)
+                VALUES (UUID(), :user, :pass, :role, :status, 0, :id_kar)
             ");
             
             $stmtUser->execute([
-                'user' => $index,
-                'pass' => $hashed,
+                'user'   => $index,
+                'pass'   => $hashed,
+                'role'   => $role,
                 'status' => $status,
                 'id_kar' => $id_karyawan
             ]);
@@ -60,7 +64,9 @@ class User {
             ];
 
         } catch (PDOException $e) {
-            $this->db->rollBack();
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
             if ($e->errorInfo[1] == 1062) {
                 return ['success' => false, 'message' => "Akun tersebut sudah terdaftar."];
             }
@@ -68,4 +74,3 @@ class User {
         }
     }
 }
-?>

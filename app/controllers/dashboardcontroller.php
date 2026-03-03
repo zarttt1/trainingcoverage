@@ -21,6 +21,12 @@ public function index() {
             exit();
         }
 
+        if (($_SESSION['role'] ?? '') === 'people_development') {
+             header("Location: index.php?action=peopledev_dashboard");
+             exit();
+        }
+
+
         $filters = [
             'bu' => $_GET['bu'] ?? 'All',
             'func_n1' => $_GET['func_n1'] ?? 'All',
