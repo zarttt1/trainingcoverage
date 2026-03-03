@@ -202,22 +202,24 @@
                     </div>
                 </div>
                             
-                <div class="hero-stats-stack">
-                    <div class="stat-card">
-                        <div class="stat-info">
-                            <div class="stat-value"><?php echo $total_sessions; ?></div>
-                            <div class="stat-label">Trainings</div>
+                <?php if (in_array($_SESSION['role'], ['admin', 'human_resource', 'people_development'])): ?>
+                    <div class="hero-stats-stack">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-value"><?php echo $total_sessions; ?></div>
+                                <div class="stat-label">Trainings</div>
+                            </div>
+                            <i data-lucide="book-open" style="color:white; opacity:0.8;"></i>
                         </div>
-                        <i data-lucide="book-open" style="color:white; opacity:0.8;"></i>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-info">
-                            <div class="stat-value"><?php echo number_format($total_hours, 1); ?></div>
-                            <div class="stat-label">Hours</div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-value"><?php echo number_format($total_hours, 1); ?></div>
+                                <div class="stat-label">Hours</div>
+                            </div>
+                            <i data-lucide="clock" style="color:white; opacity:0.8;"></i>
                         </div>
-                        <i data-lucide="clock" style="color:white; opacity:0.8;"></i>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
                             
             <?php if ($_SESSION['role'] !== 'employee'): ?>
@@ -253,9 +255,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 35%;">Training Name</th>
-                            <th>Date</th>
+                            <th style="width: 25%;">Training Name</th>
                                         
+                            <?php if ($_SESSION['role'] === 'employee'): ?>
+                                <th style="text-align: center;">Material</th>
+                            <?php endif; ?>
+                            
+                            <th>Date</th>
+                            
                             <?php if ($_SESSION['role'] !== 'employee'): ?>
                                 <th>Tags</th> 
                                 <th style="text-align: center;">Credit</th>
@@ -265,7 +272,7 @@
                             <th style="text-align: center;">Post Score</th>
                             
                             <?php if ($_SESSION['role'] === 'employee'): ?>
-                                <th style="text-align: center;">Action</th>
+                                <th style="text-align: center;">Certificate</th>
                             <?php endif; ?>
                             
                             <?php if ($_SESSION['role'] === 'admin'): ?>

@@ -48,9 +48,15 @@ public function index() {
 
     public function announcements() {
         $this->checkAuth();
-        
-        $stmt = $this->pdo->query("SELECT a.*, u.username as author FROM announcements a JOIN users u ON a.created_by = u.user_id ORDER BY a.created_at DESC");
-        $announcements = $stmt->fetchAll();
+
+        $stmt = $this->pdo->prepare("
+            SELECT a.*, u.username as author 
+            FROM announcements a 
+            LEFT JOIN users u ON a.created_by = u.user_id 
+            ORDER BY a.created_at DESC
+        ");
+        $stmt->execute();
+        $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         require 'app/views/announcements.php';
     }
@@ -60,20 +66,31 @@ public function index() {
         $role = $_SESSION['role'] ?? 'employee';
 
         if (empty($data)) {
-            $cols = ($role === 'employee') ? 5 : 7;
+            $cols = ($role === 'employee') ? 6 : 7;
             return "<tr><td colspan='$cols' style='text-align:center; padding: 30px; color: #888;'>No training records found.</td></tr>";
         }
 
         foreach ($data as $row) {
             $html .= "<tr>";
             $html .= "<td style='font-weight:600;'>" . htmlspecialchars($row['nama_training']) . "</td>";
+
+            if ($role === 'employee') {
+                $html .= "<td style='text-align: center;'>";
+                if (!empty($row['material_link'])) {
+                    $html .= "<a href='" . htmlspecialchars($row['material_link']) . "' target='_blank' class='btn-export' style='padding: 5px 12px; height: 30px; display: inline-flex; align-items: center; text-decoration: none;'>
+                                <i data-lucide='external-link' style='width: 14px; margin-right: 5px;'></i> Open
+                              </a>";
+                } else {
+                    $html .= "<span style='color: #ccc; font-size: 11px;'>N/A</span>";
+                }
+                $html .= "</td>";
+            }
+
             $html .= "<td>" . date('d M Y', strtotime($row['date_start'])) . "</td>";
 
             if ($role !== 'employee') {
-                $typeClass = strpos(strtolower($row['category'] ?? ''), 'tech') !== false ? 'type-tech' : 
-                            (strpos(strtolower($row['category'] ?? ''), 'soft') !== false ? 'type-soft' : 'type-default');
+                $typeClass = strpos(strtolower($row['category'] ?? ''), 'tech') !== false ? 'type-tech' : 'type-soft';
                 $html .= "<td><span class='badge $typeClass'>" . htmlspecialchars($row['category'] ?? 'General') . "</span></td>";
-
                 $html .= "<td style='text-align:center;'>" . ($row['credit_hour'] ?? 0) . "</td>";
             }
 
@@ -82,26 +99,17 @@ public function index() {
 
             if ($role === 'employee') {
                 $html .= "<td style='text-align: center;'>";
-                $html .= "<div style='display: flex; gap: 15px; justify-content: center;'>";
-
-                $html .= "<a href='index.php?action=download_material&id=" . $row['id_score'] . "' title='Download Material' style='color: #197B40;'>
-                            <i data-lucide='download-cloud' style='width: 18px;'></i>
+                $html .= "<a href='index.php?action=download_certificate&id=" . $row['id_score'] . "' title='Download Certificate' style='color: #FF9A02;'>
+                            <i data-lucide='award' style='width: 22px;'></i>
                           </a>";
-
-                if (isset($row['status_kelulusan']) && strtolower($row['status_kelulusan']) === 'lulus') {
-                    $html .= "<a href='index.php?action=download_certificate&id=" . $row['id_score'] . "' title='Download Certificate' style='color: #FF9A02;'>
-                                <i data-lucide='award' style='width: 18px;'></i>
-                              </a>";
-                } else {
-                    $html .= "<i data-lucide='award' style='width: 18px; color: #ccc;' title='Not Available'></i>";
-                }
-
-                $html .= "</div></td>";
+                $html .= "</td>";
             }
 
             if ($role === 'admin') {
                 $html .= "<td style='text-align: center;'>
-                            <button class='btn-delete'><i data-lucide='trash-2' style='width: 16px;'></i></button>
+                            <button class='btn-delete' onclick='deleteRecord(\"".$row['id_score']."\")'>
+                                <i data-lucide='trash-2' style='width: 16px;'></i>
+                            </button>
                           </td>";
             }
 
@@ -109,6 +117,7 @@ public function index() {
         }
         return $html;
     }
+
     private function renderPagination($data) {
         return "Showing " . count($data['data']) . " of " . $data['total_records'] . " entries";
     }

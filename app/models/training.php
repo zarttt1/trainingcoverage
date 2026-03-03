@@ -382,4 +382,22 @@ public function getTypes() {
     $stmt->execute([$id]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getHistoryByEmployee($id_karyawan) {
+    $sql = "SELECT 
+                s.id_score, 
+                t.nama_training, t.jenis AS category,
+                ts.date_start, ts.date_end, ts.method, ts.credit_hour,
+                ts.material_link,
+                s.pre, s.post, s.status_kelulusan
+            FROM score s
+            JOIN training_session ts ON s.id_session = ts.id_session
+            JOIN training t ON ts.id_training = t.id_training
+            WHERE s.id_karyawan = ?
+            ORDER BY ts.date_start DESC";
+    
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([$id_karyawan]);
+    return $stmt->fetchAll();
+}
 }
