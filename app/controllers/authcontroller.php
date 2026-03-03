@@ -24,6 +24,7 @@ class AuthController {
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
+                    $_SESSION['id_karyawan'] = $user['id_karyawan'];
                     
                     header("Location: index.php?action=dashboard");
                     exit();
@@ -44,27 +45,33 @@ class AuthController {
         exit();
     }
 
-    public function register() {
-        $error = '';
-        $success = '';
+   public function register() {
+    $error = '';
+    $success = '';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = trim($_POST['username'] ?? '');
-            $password = $_POST['password'] ?? '';
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $data = [
+            'username' => trim($_POST['username'] ?? ''),
+            'nama'     => trim($_POST['nama'] ?? ''),
+            'bu'       => trim($_POST['bu'] ?? ''),
+            'func1'    => trim($_POST['func1'] ?? ''),
+            'func2'    => trim($_POST['func2'] ?? ''),
+            'password' => $_POST['password'] ?? ''
+        ];
 
-            if (empty($username) || empty($password)) {
-                $error = "All fields are required.";
+        if (empty($data['username']) || empty($data['password']) || empty($data['nama'])) {
+            $error = "Semua field wajib diisi.";
+        } else {
+            $result = $this->userModel->create($data); 
+            
+            if ($result['success'] === true) {
+                $success = $result['message'];
             } else {
-                $result = $this->userModel->create($username, $password);
-                if ($result === true) {
-                    $success = "Request sent! Waiting for Admin approval.";
-                } else {
-                    $error = $result;
-                }
+                $error = is_array($result['message']) ? implode(', ', $result['message']) : $result['message'];
             }
         }
-        
-        require 'app/views/register.php';
     }
+    require 'app/views/register.php';
+}
 }
 ?>

@@ -130,33 +130,51 @@
 
     <div class="main-wrapper">
         <nav class="navbar">
-            <div class="logo-section"><img src="public/GGF White.png" alt="GGF Logo"></div>
-            <div class="nav-links">
-                <a href="index.php?action=dashboard">Dashboard</a>
-                <a href="index.php?action=reports">Trainings</a>
-                <a href="index.php?action=employees" class="active">Employees</a>
-                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                    <a href="index.php?action=upload">Upload Data</a>
-                    <a href="index.php?action=users">Users</a>
-                <?php endif; ?>
-            </div>
-            <div class="nav-right">
-                <div class="user-profile"><div class="avatar-circle"><?php echo strtoupper(substr($_SESSION['username'] ?? 'User', 0, 2)); ?></div></div>
-                <a href="index.php?action=logout" class="btn-signout">Sign Out</a>
-            </div>
-        </nav>
+    <div class="logo-section">
+        <img src="public/GGF White.png" alt="GGF Logo">
+    </div>
+    
+    <div class="nav-links">
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'employee'): ?>
+            <a href="index.php?action=employee_dashboard" class="<?php echo ($_GET['action'] == 'employee_dashboard') ? 'active' : ''; ?>">My History</a>
+            <a href="index.php?action=announcements" class="<?php echo ($_GET['action'] == 'announcements') ? 'active' : ''; ?>">Announcements</a>
+        <?php else: ?>
+            <a href="index.php?action=dashboard">Dashboard</a>
+            <a href="index.php?action=reports">Trainings</a>
+            <a href="index.php?action=employees" class="active">Employees</a>
+            <?php if ($_SESSION['role'] === 'admin'): ?>
+                <a href="index.php?action=upload">Upload Data</a>
+                <a href="index.php?action=users">Users</a>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
 
-        <div class="top-grid">
+    <div class="nav-right">
+        <div class="user-profile">
+            <div class="avatar-circle">
+                <?php echo strtoupper(substr($_SESSION['username'] ?? 'User', 0, 2)); ?>
+            </div>
+        </div>
+        <a href="index.php?action=logout" class="btn-signout">Sign Out</a>
+    </div>
+</nav>
+
+        <div class="top-grid" <?php echo ($_SESSION['role'] === 'employee') ? 'style="grid-template-columns: 1fr;"' : ''; ?>>
+    
             <div class="hero-banner">
-                <a href="index.php?action=employees" class="back-btn"><i data-lucide="arrow-left" style="width:14px;"></i> Back</a>
-
+                <?php if ($_SESSION['role'] !== 'employee'): ?>
+                    <a href="index.php?action=employees" class="back-btn"><i data-lucide="arrow-left" style="width:14px;"></i> Back</a>
+                <?php endif; ?>
+                
                 <div class="hero-mascot">
                     <img src="public/icons/Pina - Greetings.png" alt="Mascot">
                 </div>
                 
                 <div class="hero-content">
                     <div>
-                        <span class="hero-label">Employee Profile</span>
+                        <span class="hero-label">
+                            <?php echo ($_SESSION['role'] === 'employee') ? 'My Profile' : 'Employee Profile'; ?>
+                        </span>
                         
                         <h1 class="hero-name">
                             <?php echo htmlspecialchars($employee['nama_karyawan']); ?>
@@ -164,10 +182,10 @@
                                 <i data-lucide="edit-2" class="edit-icon" onclick="openEditModal()" style="width:18px; cursor:pointer; margin-left:10px; opacity:0.7; color: #FED404;"></i>
                             <?php endif; ?>
                         </h1>
-                        
+                            
                         <span class="hero-id">Index : <?php echo htmlspecialchars($employee['index_karyawan']); ?></span>
                     </div>
-
+                            
                     <div class="hero-details-stack">
                         <div class="detail-row">
                             <i data-lucide="building-2"></i>
@@ -183,7 +201,7 @@
                         </div>
                     </div>
                 </div>
-
+                            
                 <div class="hero-stats-stack">
                     <div class="stat-card">
                         <div class="stat-info">
@@ -201,13 +219,15 @@
                     </div>
                 </div>
             </div>
-
-            <div class="chart-card">
-                <div class="chart-title"><i data-lucide="pie-chart" style="width:18px"></i> Training Focus</div>
-                <div style="height: 80%; width: 80%; position: relative;">
-                    <canvas id="mixChart"></canvas>
+                            
+            <?php if ($_SESSION['role'] !== 'employee'): ?>
+                <div class="chart-card">
+                    <div class="chart-title"><i data-lucide="pie-chart" style="width:18px"></i> Training Focus</div>
+                    <div style="height: 80%; width: 80%; position: relative;">
+                        <canvas id="mixChart"></canvas>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
 
         <div class="table-card">
@@ -219,25 +239,37 @@
                 <div class="table-actions">
                     <div class="search-box">
                         <img src="public/icons/search.ico" style="width: 26px; height: 26px; transform: scale(1.8); margin-right: 4px;" alt="Search">
-                        <input type="text" id="searchInput" placeholder="Search training..." value="<?php echo htmlspecialchars($search); ?>">
+                        <input type="text" id="searchInput" placeholder="Search training..." value="<?php echo htmlspecialchars($search ?? ''); ?>">
                     </div>
-                    <a href="index.php?action=export_employee&id=<?php echo $id; ?>&search=<?php echo urlencode($search); ?>" id="exportBtn" class="btn-export">
-                        <img src="public/icons/excel.ico" style="width: 26px; height: 26px; transform: scale(1.8); margin-right: 4px;">
-                    </a>
+
+                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] !== 'employee'): ?>
+                        <a href="index.php?action=export_employee&id=<?php echo $id; ?>&search=<?php echo urlencode($search ?? ''); ?>" id="exportBtn" class="btn-export">
+                            <img src="public/icons/excel.ico" style="width: 26px; height: 26px; transform: scale(1.8); margin-right: 4px;">
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 30%;">Training Name</th>
+                            <th style="width: 35%;">Training Name</th>
                             <th>Date</th>
-                            <th>Tags</th> 
-                            <th style="text-align: center;">Credit</th>
+                                        
+                            <?php if ($_SESSION['role'] !== 'employee'): ?>
+                                <th>Tags</th> 
+                                <th style="text-align: center;">Credit</th>
+                            <?php endif; ?>
+                            
                             <th style="text-align: center;">Pre Score</th>
                             <th style="text-align: center;">Post Score</th>
-                            <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
-                                <th style="width: 50px; text-align: center;">Action</th>
+                            
+                            <?php if ($_SESSION['role'] === 'employee'): ?>
+                                <th style="text-align: center;">Action</th>
+                            <?php endif; ?>
+                            
+                            <?php if ($_SESSION['role'] === 'admin'): ?>
+                                <th style="width: 50px; text-align: center;">Action (Admin)</th>
                             <?php endif; ?>
                         </tr>
                     </thead>

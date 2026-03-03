@@ -9,98 +9,91 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background-color: #197B40; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .main-container { background-color: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); display: flex; width: 900px; max-width: 95%; overflow: hidden; min-height: 550px; }
+        body { background-color: #197B40; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .main-container { background-color: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); display: flex; width: 950px; max-width: 100%; overflow: hidden; min-height: 550px; }
         .mascot-section { flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f8f9fa; padding: 20px; position: relative; }
-        .mascot-image { max-width: 100%; height: auto; max-height: 400px; object-fit: contain; z-index: 1; }
-        .login-section { flex: 1; padding: 50px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid #e0e0e0; }
-        .header-content { text-align: center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; }
-        .logo-placeholder { width: 140px; height: auto; margin-bottom: 20px; }
-        h2 { color: #197b40; margin-bottom: 10px; font-size: 28px; font-weight: 700; }
-        p.subtitle { color: #777; font-size: 14px; margin-bottom: 10px; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; font-size: 13px; font-weight: 700; color: #333; margin-bottom: 8px; }
-        input[type="text"], input[type="password"], input[type="email"] { width: 100%; padding: 14px 20px; border: 1px solid #ccc; border-radius: 50px; outline: none; font-size: 14px; color: #555; transition: border-color 0.3s; }
-        input:focus { border-color: #197B40; }
+        @media(max-width: 768px) { .mascot-section { display: none; } }
+        .mascot-image { max-width: 100%; height: auto; max-height: 350px; object-fit: contain; }
+        .login-section { flex: 1.2; padding: 40px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid #e0e0e0; }
+        .header-content { text-align: center; margin-bottom: 20px; }
+        .logo-placeholder { width: 130px; margin-bottom: 15px; }
+        h2 { color: #197b40; font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+        p.subtitle { color: #777; font-size: 13px; margin-bottom: 15px; }
         
-        .btn-signin { position: relative; width: 100%; height: 55px; background: linear-gradient(90deg, #FF9A02 0%, #FED404 100%); color: white; border: none; border-radius: 27.5px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; margin-bottom: 25px; display: flex; justify-content: center; align-items: center; overflow: visible; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(255, 154, 2, 0.3); }
-        .btn-signin:active { transform: scale(0.98); }
-        .btn-signin span { position: relative; z-index: 2; }
-        .btn-signin svg { position: absolute; top: -3px; left: -3px; width: calc(100% + 6px); height: calc(100% + 6px); fill: none; pointer-events: none; overflow: visible; }
-        .btn-signin rect { width: 100%; height: 100%; rx: 27.5px; ry: 27.5px; stroke: url(#multiColorGradientHTML); stroke-width: 3; stroke-dasharray: 120, 380; stroke-dashoffset: 0; opacity: 0; transition: opacity 0.3s; }
-        .btn-signin:hover rect { opacity: 1; animation: snakeMove 2s linear infinite; }
-        @keyframes snakeMove { from { stroke-dashoffset: 500; } to { stroke-dashoffset: 0; } }
-
-        .footer-text { font-size: 12px; color: #777; text-align: center; }
-        .footer-text a { color: #1a7f5d; text-decoration: none; font-weight: bold; }
+        /* Grid Form */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
         
-        @media (max-width: 768px) { .main-container { flex-direction: column; width: 90%; } .login-section { border-left: none; padding: 30px; } .mascot-image { max-height: 200px; } }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-size: 12px; font-weight: 700; color: #333; margin-bottom: 6px; }
+        input { width: 100%; padding: 12px 18px; border: 1px solid #ccc; border-radius: 10px; outline: none; font-size: 13px; transition: 0.3s; }
+        input:focus { border-color: #197b40; box-shadow: 0 0 0 3px rgba(25, 123, 64, 0.1); }
         
-        .alert { padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center; }
-        .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert-success { background-color: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        button { width: 100%; padding: 14px; background-color: #197b40; color: white; border: none; border-radius: 50px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background-color: #145e32; transform: translateY(-2px); }
+        
+        .message { padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 15px; text-align: center; }
+        .error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #197b40; font-size: 13px; text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        
-        <div class="mascot-section">
-            <img src="public/icons/Pina - Greetings.png" alt="Illustration" class="mascot-image">
-        </div>
-
-        <div class="login-section">
-            <div class="header-content">
-                <img src="public/GGF Green.png" alt="GGF Logo" class="logo-placeholder">
-                
-                <h2>Request Account</h2>
-                <p class="subtitle">Fill in your details to request access</p>
-            </div>
-
-            <?php if (!empty($error)): ?>
-                <div class="alert alert-error">
-                    <?= htmlspecialchars($error) ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!empty($success)): ?>
-                <div class="alert alert-success">
-                    <?= $success ?> <br><br>
-                    <a href="index.php?action=show_login" style="font-weight:bold; color: #065f46; text-decoration: underline;">Back to Login</a>
-                </div>
-            <?php else: ?>
-                <form method="POST" action="index.php?action=register">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" placeholder="Create a username" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Create a password" required>
-                    </div>
-
-                    <button type="submit" class="btn-signin">
-                        <span>Submit Request</span>
-                        <svg>
-                            <defs>
-                                <linearGradient id="multiColorGradientHTML" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#197B40" />   
-                                    <stop offset="100%" stop-color="#14674b" /> 
-                                </linearGradient>
-                            </defs>
-                            <rect x="0" y="0"></rect>
-                        </svg>
-                    </button>
-                </form>
-            <?php endif; ?>
-
-            <div class="footer-text">
-                Already have an account? <a href="index.php?action=show_login">Login Here</a>
-            </div>
-        </div>
-        
+<div class="main-container">
+    <div class="mascot-section">
+        <img src="public/icons/Pina - Say Hi.png" alt="Mascot" class="mascot-image">
     </div>
+
+    <div class="login-section">
+        <div class="header-content">
+            <img src="public/GGF Green.png" alt="GGF Logo" class="logo-placeholder">
+            <h2>Request Account</h2>
+            <p class="subtitle">Daftar menggunakan Index Karyawan Anda.</p>
+        </div>
+
+        <?php if (!empty($error)): ?>
+            <div class="message error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($success)): ?>
+            <div class="message success"><?php echo htmlspecialchars($success); ?></div>
+        <?php endif; ?>
+
+        <form action="index.php?action=register" method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Index Karyawan</label>
+                    <input type="text" name="username" placeholder="Contoh: 00123456" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="nama" placeholder="Sesuai ID Card" required>
+                </div>
+                <div class="form-group">
+                    <label>Business Unit (BU)</label>
+                    <input type="text" name="bu" placeholder="Contoh: GGP" required>
+                </div>
+                <div class="form-group">
+                    <label>Function 1</label>
+                    <input type="text" name="func1" placeholder="Contoh: IT" required>
+                </div>
+                <div class="form-group">
+                    <label>Function 2 (Opsional)</label>
+                    <input type="text" name="func2" placeholder="Contoh: Software Dev">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Min. 6 Karakter" required>
+                </div>
+            </div>
+
+            <button type="submit">Submit Request</button>
+        </form>
+
+        <a href="index.php?action=show_login" class="back-link">← Kembali ke Login</a>
+    </div>
+</div>
 
 </body>
 </html>

@@ -74,6 +74,11 @@ switch ($action) {
         break;
 
     // --- EMPLOYEES ---
+    case 'employee_dashboard':
+        require_once 'app/controllers/EmployeeDashboardController.php';
+        $controller = new EmployeeDashboardController($pdo);
+        $controller->index();
+        break;
     case 'employees': 
     case 'employee_search': 
     case 'employee_filter_options': 
@@ -96,6 +101,13 @@ switch ($action) {
         require_once 'app/controllers/UserController.php';
         $userCtrl = new UserController($pdo);
         $userCtrl->index(); 
+        break;
+
+    // --- ANNOUNCEMENTS ---
+    case 'announcements':
+        require_once 'app/controllers/EmployeeDashboardController.php';
+        $controller = new EmployeeDashboardController($pdo);
+        $controller->announcements();
         break;
 
     // --- DEFAULT ---

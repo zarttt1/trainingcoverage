@@ -1,0 +1,115 @@
+<?php
+// app/controllers/EmployeeDashboardController.php
+
+require_once __DIR__ . '/../models/Employee.php';
+require_once __DIR__ . '/../models/Training.php';
+
+class EmployeeDashboardController {
+    private $pdo;
+    private $employeeModel;
+    private $trainingModel;
+
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
+        $this->employeeModel = new Employee($pdo);
+        $this->trainingModel = new Training($pdo);
+    }
+
+    private function checkAuth() {
+        if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'employee') {
+            header("Location: index.php?action=show_login");
+            exit();
+        }
+    }
+
+public function index() {
+    $this->checkAuth();
+    
+    $id = $_SESSION['id_karyawan'] ?? null; 
+    $search = $_GET['search'] ?? ''; 
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+    if (!$id) {
+        die("Akun Anda belum terhubung dengan data karyawan.");
+    }
+
+    $employee = $this->employeeModel->getEmployeeById($id);
+    $stats = $this->employeeModel->getEmployeeStats($id);
+    
+    $historyData = $this->employeeModel->getTrainingHistory($id, $search, $page, 10);
+
+    $total_sessions = $stats['total_sessions'] ?? 0;
+    $total_hours = $stats['total_hours'] ?? 0;
+    $count_tech = $stats['count_tech'] ?? 0;
+    $count_soft = $stats['count_soft'] ?? 0;
+
+    require 'app/views/employee_history.php';
+}
+
+    public function announcements() {
+        $this->checkAuth();
+        
+        $stmt = $this->pdo->query("SELECT a.*, u.username as author FROM announcements a JOIN users u ON a.created_by = u.user_id ORDER BY a.created_at DESC");
+        $announcements = $stmt->fetchAll();
+
+        require 'app/views/announcements.php';
+    }
+
+    private function renderHistoryRows($data) {
+        $html = '';
+        $role = $_SESSION['role'] ?? 'employee';
+
+        if (empty($data)) {
+            $cols = ($role === 'employee') ? 5 : 7;
+            return "<tr><td colspan='$cols' style='text-align:center; padding: 30px; color: #888;'>No training records found.</td></tr>";
+        }
+
+        foreach ($data as $row) {
+            $html .= "<tr>";
+            $html .= "<td style='font-weight:600;'>" . htmlspecialchars($row['nama_training']) . "</td>";
+            $html .= "<td>" . date('d M Y', strtotime($row['date_start'])) . "</td>";
+
+            if ($role !== 'employee') {
+                $typeClass = strpos(strtolower($row['category'] ?? ''), 'tech') !== false ? 'type-tech' : 
+                            (strpos(strtolower($row['category'] ?? ''), 'soft') !== false ? 'type-soft' : 'type-default');
+                $html .= "<td><span class='badge $typeClass'>" . htmlspecialchars($row['category'] ?? 'General') . "</span></td>";
+
+                $html .= "<td style='text-align:center;'>" . ($row['credit_hour'] ?? 0) . "</td>";
+            }
+
+            $html .= "<td style='text-align:center;'>" . ($row['pre'] ?? 0) . "</td>";
+            $html .= "<td style='text-align:center;'><span class='score-box'>" . ($row['post'] ?? 0) . "</span></td>";
+
+            if ($role === 'employee') {
+                $html .= "<td style='text-align: center;'>";
+                $html .= "<div style='display: flex; gap: 15px; justify-content: center;'>";
+
+                $html .= "<a href='index.php?action=download_material&id=" . $row['id_score'] . "' title='Download Material' style='color: #197B40;'>
+                            <i data-lucide='download-cloud' style='width: 18px;'></i>
+                          </a>";
+
+                if (isset($row['status_kelulusan']) && strtolower($row['status_kelulusan']) === 'lulus') {
+                    $html .= "<a href='index.php?action=download_certificate&id=" . $row['id_score'] . "' title='Download Certificate' style='color: #FF9A02;'>
+                                <i data-lucide='award' style='width: 18px;'></i>
+                              </a>";
+                } else {
+                    $html .= "<i data-lucide='award' style='width: 18px; color: #ccc;' title='Not Available'></i>";
+                }
+
+                $html .= "</div></td>";
+            }
+
+            if ($role === 'admin') {
+                $html .= "<td style='text-align: center;'>
+                            <button class='btn-delete'><i data-lucide='trash-2' style='width: 16px;'></i></button>
+                          </td>";
+            }
+
+            $html .= "</tr>";
+        }
+        return $html;
+    }
+    private function renderPagination($data) {
+        return "Showing " . count($data['data']) . " of " . $data['total_records'] . " entries";
+    }
+}
