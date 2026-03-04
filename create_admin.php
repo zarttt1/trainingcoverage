@@ -9,8 +9,8 @@ if (!isset($pdo)) {
     die("Error: Koneksi database tidak ditemukan. Pastikan variabel koneksi di file config bernama \$pdo");
 }
 
-$new_username = 'admin_peopledev'; 
-$new_password = 'password123'; 
+$new_username = 'admin'; 
+$new_password = 'Admin123'; 
 
 try {
     // 2. Hash password

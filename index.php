@@ -74,9 +74,13 @@ switch ($action) {
         break;
 
     // --- PEOPLE DEVELOPMENT ---
-    case 'peopledev_dashboard':
-    case 'peopledev_employees':
-    case 'peopledev_history':
+    case 'dashboard':
+    case 'employees':
+    case 'history':
+    case 'peopledev_announcements':
+    case 'add_announcement':
+    case 'peopledev_materials':
+    case 'upload_material':
         require_once 'app/controllers/PeopleDevController.php';
         $peopleDev = new PeopleDevController($pdo);
 
@@ -86,6 +90,14 @@ switch ($action) {
             $peopleDev->employeeReports();
         } elseif ($action === 'peopledev_history') {
             $peopleDev->employeeHistory();
+        } elseif ($action === 'peopledev_announcements') {
+            $peopleDev->announcements();
+        } elseif ($action === 'add_announcement') {
+            $peopleDev->addAnnouncement();
+        } elseif ($action === 'peopledev_materials') {
+            $peopleDev->materials();
+        } elseif ($action === 'upload_material') {
+            $peopleDev->uploadMaterial();
         }
         break;
     // --- EMPLOYEES ---

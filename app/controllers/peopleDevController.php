@@ -15,9 +15,6 @@ class PeopleDevController {
         $this->empModel = new Employee($pdo);
     }
 
-    /**
-     * Cek apakah user memiliki akses People Development atau Admin
-     */
     private function checkAccess() {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -28,21 +25,16 @@ class PeopleDevController {
             exit();
         }
 
-        // Sesuai dengan ENUM database kamu: 'people_development'
         $allowedRoles = ['people_development', 'admin']; 
-        
         if (!in_array($_SESSION['role'] ?? '', $allowedRoles)) {
             die("Access Denied: Halaman ini khusus untuk People Development.");
         }
     }
 
-    /**
-     * Dashboard khusus People Dev
-     */
+    // --- DASHBOARD ---
     public function index() {
         $this->checkAccess();
 
-        // 1. Definisikan semua filter agar tidak muncul "Undefined index"
         $filters = [
             'bu'            => $_GET['bu'] ?? 'All',
             'func_n1'       => $_GET['func_n1'] ?? 'All',
@@ -54,63 +46,118 @@ class PeopleDevController {
             'training_name' => $_GET['training_name'] ?? 'All'
         ];
 
-        // 2. Ambil data statistik (Gunakan null coalescing agar aman jika data kosong)
         $rawStats = $this->trainingModel->getStats($filters);
+        
         $stats = [
-            'total_sessions'     => $rawStats['total_sessions'] ?? 0,
-            'total_participants' => $rawStats['total_participants'] ?? 0,
-            'avg_post_test'      => $rawStats['avg_post_test'] ?? 0
+            'total_hours'   => $rawStats['total_hours'] ?? 0,
+            'offline_hours' => $rawStats['offline_hours'] ?? 0,
+            'online_hours'  => $rawStats['online_hours'] ?? 0,
+            'participants'  => $rawStats['total_participants'] ?? 0
         ];
 
-        // 3. Ambil list training
         $trainings = $this->trainingModel->getTrainingList($filters) ?: [];
-        
-        // 4. Ambil opsi untuk dropdown filter (agar filter di view jalan)
-        $opt_bu    = $this->trainingModel->getBus();
-        $opt_func1 = $this->trainingModel->getFuncN1($filters['bu']);
-        $opt_func2 = $this->trainingModel->getFuncN2($filters['bu'], $filters['func_n1']);
-        $opt_types = $this->trainingModel->getTypes();
+        $opt_bu    = $this->trainingModel->getBus() ?: [];
+        $opt_func1 = $this->trainingModel->getFuncN1($filters['bu']) ?: [];
+        $opt_func2 = $this->trainingModel->getFuncN2($filters['bu'], $filters['func_n1']) ?: [];
+        $opt_type  = $this->trainingModel->getTypes() ?: [];
 
-        // 5. Tampilkan View
         require 'app/views/peopledev_dashboard.php';
     }
 
-    /**
-     * Daftar Karyawan & Status Training
-     */
+    // --- EMPLOYEES & REPORTS ---
     public function employeeReports() {
         $this->checkAccess();
-
         $filters = [
             'search' => $_GET['search'] ?? '',
             'bu'     => $_GET['bu'] ?? 'All BUs',
             'fn1'    => $_GET['fn1'] ?? 'All Func N-1',
             'fn2'    => $_GET['fn2'] ?? 'All Func N-2'
         ];
-        
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $data = $this->empModel->getAllEmployees($filters, $page);
         $opt_bu = $this->trainingModel->getBus();
-
         require 'app/views/employee_reports.php';
     }
 
-    /**
-     * History per individu karyawan
-     */
     public function employeeHistory() {
         $this->checkAccess();
-
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header("Location: index.php?action=peopledev_employees");
             exit();
         }
-
         $employee = $this->empModel->getEmployeeById($id);
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $history = $this->empModel->getEmployeeHistory($id, '', $page);
-
         require 'app/views/employee_history.php';
+    }
+
+    // --- ANNOUNCEMENTS (SCHEDULES) ---
+    public function announcements() {
+        $this->checkAccess();
+        
+        $stmt = $this->pdo->prepare("SELECT * FROM announcements ORDER BY created_at DESC");
+        $stmt->execute();
+        $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        require 'app/views/peopledev_announcement.php';
+    }
+
+    public function addAnnouncement() {
+        $this->checkAccess();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $title = $_POST['title'] ?? '';
+            $startDate = $_POST['start_date'] ?? '';
+            $location = $_POST['location'] ?? '';
+            $description = $_POST['description'] ?? '';
+
+            $stmt = $this->pdo->prepare("INSERT INTO announcements (title, start_date, location, description) VALUES (?, ?, ?, ?)");
+            
+            if ($stmt->execute([$title, $startDate, $location, $description])) {
+                header("Location: index.php?action=peopledev_announcement&status=success");
+            } else {
+                header("Location: index.php?action=peopledev_announcement&status=error");
+            }
+            exit();
+        }
+    }
+
+    // --- MATERIALS (LIBRARY) ---
+    public function materials() {
+        $this->checkAccess();
+        
+        $stmt = $this->pdo->prepare("SELECT * FROM training_materials ORDER BY uploaded_at DESC");
+        $stmt->execute();
+        $materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        require 'app/views/peopledev_materials.php';
+    }
+
+    public function uploadMaterial() {
+        $this->checkAccess();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file_materi'])) {
+            $docName = $_POST['doc_name'] ?? 'Untitled';
+            $file = $_FILES['file_materi'];
+            
+            $uploadDir = 'public/uploads/materials/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileName = time() . '_' . basename($file['name']);
+            $targetPath = $uploadDir . $fileName;
+            $fileSize = round($file['size'] / 1024, 2); 
+
+            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                $stmt = $this->pdo->prepare("INSERT INTO materials (name, file_path, file_size) VALUES (?, ?, ?)");
+                $stmt->execute([$docName, $targetPath, $fileSize]);
+                header("Location: index.php?action=peopledev_materials&status=uploaded");
+            } else {
+                header("Location: index.php?action=peopledev_materials&status=failed");
+            }
+            exit();
+        }
     }
 }
