@@ -49,6 +49,7 @@
                 <a href="index.php?action=dashboard">Dashboard</a>
                 <a href="index.php?action=reports">Trainings</a>
                 <a href="index.php?action=employees">Employees</a>
+                <a href="index.php?action=announcements">Announcements</a>
                 <a href="index.php?action=upload">Upload Data</a>
                 <a href="index.php?action=users" class="active">Users</a>
             </div>

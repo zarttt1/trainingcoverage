@@ -250,17 +250,20 @@
     <div class="main-wrapper">
         <nav class="navbar">
             <div class="logo-section"><img src="public/GGF White.png" alt="GGF Logo"></div>
-            <div class="nav-links">
-                <a href="index.php?action=dashboard" class="active">Dashboard</a>
-                <a href="index.php?action=reports">Trainings</a>
-                <a href="index.php?action=employees">Employees</a>
-                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                    <a href="index.php?action=upload">Upload Data</a>
-                <?php endif; ?>
-                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                    <a href="index.php?action=users">Users</a>
-                <?php endif; ?>
-            </div>
+                <div class="nav-links">
+                    <a href="index.php?action=dashboard" class="active">Dashboard</a>
+                    <a href="index.php?action=reports">Trainings</a>
+                    <a href="index.php?action=employees">Employees</a>
+                    
+                    <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'people_development'])): ?>
+                        <a href="index.php?action=announcements">Announcements</a>
+                    <?php endif; ?>
+                    
+                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                        <a href="index.php?action=upload">Upload Data</a>
+                        <a href="index.php?action=users">Users</a>
+                    <?php endif; ?>
+                </div>
             <div class="nav-right">
                 <div class="user-profile"><div class="avatar-circle"><?php echo strtoupper(substr($_SESSION['username'] ?? 'User', 0, 2)); ?></div></div>
                 <a href="index.php?action=logout" class="btn-signout">Sign Out</a>

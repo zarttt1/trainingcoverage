@@ -136,12 +136,13 @@
     
     <div class="nav-links">
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'employee'): ?>
-            <a href="index.php?action=employee_dashboard" class="<?php echo ($_GET['action'] == 'employee_dashboard') ? 'active' : ''; ?>">My History</a>
-            <a href="index.php?action=announcements" class="<?php echo ($_GET['action'] == 'announcements') ? 'active' : ''; ?>">Announcements</a>
+            <a href="index.php?action=employee_dashboard">">My History</a>
+            <a href="index.php?action=announcements">Announcements</a>
         <?php else: ?>
             <a href="index.php?action=dashboard">Dashboard</a>
             <a href="index.php?action=reports">Trainings</a>
             <a href="index.php?action=employees" class="active">Employees</a>
+            <a href="index.php?action=announcements">Announcements</a>
             <?php if ($_SESSION['role'] === 'admin'): ?>
                 <a href="index.php?action=upload">Upload Data</a>
                 <a href="index.php?action=users">Users</a>

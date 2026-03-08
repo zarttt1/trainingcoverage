@@ -122,6 +122,7 @@
                 <a href="index.php?action=dashboard">Dashboard</a>
                 <a href="index.php?action=reports">Trainings</a>
                 <a href="index.php?action=employees" class="active">Employees</a>
+                <a href="index.php?action=announcements">Announcements</a>
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                     <a href="index.php?action=upload">Upload Data</a>
                 <?php endif; ?>
