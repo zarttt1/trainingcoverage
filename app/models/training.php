@@ -256,15 +256,16 @@ public function getTypes() {
     }
 
     public function getSessionById($id) {
-        $sql = "SELECT t.nama_training, t.instructor_name, t.lembaga, 
-                       ts.code_sub, ts.date_start, ts.date_end, ts.credit_hour 
-                FROM training_session ts 
-                JOIN training t ON ts.id_training = t.id_training 
-                WHERE ts.id_session = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
+            $sql = "SELECT t.nama_training, t.instructor_name, t.lembaga, 
+                           ts.code_sub, ts.date_start, ts.date_end, ts.credit_hour,
+                           ts.material_link
+                    FROM training_session ts 
+                    JOIN training t ON ts.id_training = t.id_training 
+                    WHERE ts.id_session = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id]);
+            return $stmt->fetch();
+        }
 
     public function getSessionStats($id) {
         $sql = "SELECT 
@@ -400,4 +401,10 @@ public function getTypes() {
     $stmt->execute([$id_karyawan]);
     return $stmt->fetchAll();
 }
+
+public function updateSessionMaterial($id_session, $link) {
+        $sql = "UPDATE training_session SET material_link = ? WHERE id_session = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$link, $id_session]);
+    }
 }

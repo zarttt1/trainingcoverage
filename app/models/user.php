@@ -9,7 +9,7 @@ class User {
     }
 
     public function findByUsername($username) {
-        $stmt = $this->db->prepare("SELECT user_id, username, password, role, status, requires_password_change, id_karyawan FROM users WHERE username = :username");
+        $stmt = $this->db->prepare("SELECT user_id, username, password, role, status, id_karyawan FROM users WHERE username = :username");
         $stmt->execute(['username' => $username]);
         return $stmt->fetch(); 
     }
@@ -19,39 +19,31 @@ class User {
             $this->db->beginTransaction();
 
             $index = $data['username'];
-            $nama = $data['nama'];
             $password = $data['password'];
-            $role = isset($data['role']) ? $data['role'] : 'employee'; 
-            
             $hashed = password_hash($password, PASSWORD_DEFAULT);
 
             $stmtKar = $this->db->prepare("SELECT id_karyawan FROM karyawan WHERE index_karyawan = ?");
             $stmtKar->execute([$index]);
             $karyawan = $stmtKar->fetch();
 
-            $id_karyawan = null;
-            $status = 'pending';
-            
-            if ($karyawan) {
-                $id_karyawan = $karyawan['id_karyawan'];
-                $status = 'active';
-            } else {
-                $stmtInsKar = $this->db->prepare("INSERT INTO karyawan (index_karyawan, nama_karyawan) VALUES (?, ?)");
-                $stmtInsKar->execute([$index, $nama]);
-                $id_karyawan = $this->db->lastInsertId();
+            if (!$karyawan) {
+                $this->db->rollBack();
+                return [
+                    'success' => false, 
+                    'message' => "Registrasi gagal: Index Karyawan tidak terdaftar di sistem. Pastikan Index Anda benar atau hubungi HR."
+                ];
             }
 
-            // PERUBAHAN DI SINI: Ubah 'employee' menjadi placeholder :role
+            $id_karyawan = $karyawan['id_karyawan'];
+
             $stmtUser = $this->db->prepare("
-                INSERT INTO users (user_id, username, password, role, status, requires_password_change, id_karyawan) 
-                VALUES (UUID(), :user, :pass, :role, :status, 0, :id_kar)
+                INSERT INTO users (user_id, username, password, role, status, id_karyawan) 
+                VALUES (UUID(), :user, :pass, 'employee', 'active', :id_kar)
             ");
             
             $stmtUser->execute([
-                'user'   => $index,
-                'pass'   => $hashed,
-                'role'   => $role,
-                'status' => $status,
+                'user' => $index,
+                'pass' => $hashed,
                 'id_kar' => $id_karyawan
             ]);
 
@@ -59,16 +51,13 @@ class User {
             
             return [
                 'success' => true, 
-                'status' => $status,
-                'message' => $status === 'active' ? "Akun berhasil dibuat dan aktif. Silakan login." : "Permintaan terkirim! Menunggu persetujuan Admin."
+                'message' => "Akun berhasil diklaim dan diaktivasi. Silakan login."
             ];
 
         } catch (PDOException $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
+            $this->db->rollBack();
             if ($e->errorInfo[1] == 1062) {
-                return ['success' => false, 'message' => "Akun tersebut sudah terdaftar."];
+                return ['success' => false, 'message' => "Index Karyawan tersebut sudah memiliki akun. Silakan langsung login."];
             }
             return ['success' => false, 'message' => "Error: " . $e->getMessage()];
         }

@@ -255,7 +255,7 @@
                     <a href="index.php?action=reports">Trainings</a>
                     <a href="index.php?action=employees">Employees</a>
                     
-                    <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'people_development'])): ?>
+                    <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'people_development', 'human_resource'])): ?>
                         <a href="index.php?action=announcements">Announcements</a>
                     <?php endif; ?>
                     

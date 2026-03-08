@@ -16,39 +16,28 @@ class AuthController {
             $username = trim($_POST['username'] ?? '');
             $password = $_POST['password'] ?? '';
 
-            // Mengambil data lengkap termasuk id_karyawan & requires_password_change
             $user = $this->userModel->findByUsername($username);
 
             if ($user && password_verify($password, $user['password'])) {
                 
                 if ($user['status'] === 'active') {
-                    // Simpan data ke session
                     $_SESSION['user_id'] = $user['user_id'];
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['role'] = $user['role'];
                     $_SESSION['id_karyawan'] = $user['id_karyawan'];
                     
-                    // --- LOGIKA REDIRECT BERDASARKAN ROLE ---
-                    if ($user['role'] === 'people_development') {
-                    // Pastikan action ini (peopledev_dashboard) terdaftar di index.php
-                    header("Location: index.php?action=peopledev_dashboard"); 
-                    exit();
-                    } else if ($user['role'] === 'admin') {
-                        header("Location: index.php?action=dashboard");
-                        exit();
-                    } else {
-                        // Untuk role employee, arahkan ke employee_dashboard agar tidak kena redirect loop di DashboardController
+                    if ($user['role'] === 'employee') {
                         header("Location: index.php?action=employee_dashboard");
-                        exit();
+                    } else {
+                        header("Location: index.php?action=dashboard");
                     }
                     exit();
-                    // ----------------------------------------
 
                 } else {
-                    return "Akun Anda berstatus: " . htmlspecialchars($user['status']) . ". Silakan hubungi admin.";
+                    return "Akun Anda berstatus: " . htmlspecialchars($user['status']) . ". Menunggu persetujuan Admin.";
                 }
             } else {
-                return "Username atau password salah.";
+                return "Username (Index) atau kata sandi salah.";
             }
         }
     }
@@ -71,21 +60,25 @@ class AuthController {
             $data = [
                 'username' => trim($_POST['username'] ?? ''),
                 'nama'     => trim($_POST['nama'] ?? ''),
+                'bu'       => trim($_POST['bu'] ?? ''),
+                'func1'    => trim($_POST['func1'] ?? ''),
+                'func2'    => trim($_POST['func2'] ?? ''),
                 'password' => $_POST['password'] ?? ''
             ];
 
-            if (empty($data['username']) || empty($data['password']) || empty($data['nama'])) {
-                $error = "Semua field wajib diisi.";
+            if (empty($data['username']) || empty($data['password']) || empty($data['nama']) || empty($data['bu']) || empty($data['func1'])) {
+                $error = "Semua field wajib diisi, kecuali Function 2.";
             } else {
                 $result = $this->userModel->create($data); 
                 
                 if ($result['success'] === true) {
                     $success = $result['message'];
                 } else {
-                    $error = $result['message'];
+                    $error = is_array($result['message']) ? implode(', ', $result['message']) : $result['message'];
                 }
             }
         }
         require 'app/views/register.php';
     }
 }
+?>

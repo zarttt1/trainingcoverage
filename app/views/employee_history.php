@@ -136,7 +136,7 @@
     
     <div class="nav-links">
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'employee'): ?>
-            <a href="index.php?action=employee_dashboard">">My History</a>
+            <a href="index.php?action=employee_dashboard" class="active">My History</a>
             <a href="index.php?action=announcements">Announcements</a>
         <?php else: ?>
             <a href="index.php?action=dashboard">Dashboard</a>
@@ -277,7 +277,7 @@
                             <?php endif; ?>
                             
                             <?php if ($_SESSION['role'] === 'admin'): ?>
-                                <th style="width: 50px; text-align: center;">Action (Admin)</th>
+                                <th style="width: 50px; text-align: center;">Action</th>
                             <?php endif; ?>
                         </tr>
                     </thead>

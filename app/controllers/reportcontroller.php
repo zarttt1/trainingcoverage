@@ -8,9 +8,11 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 require_once __DIR__ . '/../models/Training.php';
 
 class ReportController {
-    private $trainingModel;
-
+    private $pdo;
+    private $trainingModel; 
+    private $employeeModel;
     public function __construct($pdo) {
+        $this->pdo = $pdo;
         $this->trainingModel = new Training($pdo);
     }
 
@@ -417,20 +419,18 @@ class ReportController {
         exit;
     }
 
-    public function updateMaterialLink() {
+public function updateMaterialLink() {
         $this->checkAuth();
-        if (!in_array($_SESSION['role'], ['admin', 'people_development'])) {
+        if (!in_array($_SESSION['role'] ?? '', ['admin', 'people_development'])) {
             die("Akses Ditolak");
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id_session = $_POST['id_session'];
-            $link = $_POST['material_link'];
-                
-            $stmt = $this->pdo->prepare("UPDATE training_session SET material_link = ? WHERE id_session = ?");
-            $stmt->execute([$link, $id_session]);
-                
-            header("Location: index.php?action=details&id=" . $id_session . "&status=success");
+            $id_session = $_POST['id_session'] ?? 0;
+            $link = trim($_POST['material_link'] ?? '');
+            
+            $this->trainingModel->updateSessionMaterial($id_session, $link);
+                        header("Location: index.php?action=details&id=" . $id_session . "&status=success");
             exit();
         }
     }

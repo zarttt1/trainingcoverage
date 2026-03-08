@@ -322,6 +322,61 @@
             </div>
         </div>
 
+<?php if (in_array($_SESSION['role'] ?? '', ['admin', 'people_development'])): ?>
+            <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-left: 4px solid #FF9A02;">
+                <h3 style="font-size: 16px; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="link" style="width: 18px; color: #FF9A02;"></i> External Material Link
+                </h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Training's Material Link.</p>
+
+                <?php $hasLink = !empty($meta['material_link']); ?>
+
+                <div id="material-display" style="display: <?php echo $hasLink ? 'flex' : 'none'; ?>; align-items: center; justify-content: space-between; background: #f9f9f9; padding: 12px 15px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                        <i data-lucide="external-link" style="width: 16px; color: #197B40; flex-shrink: 0;"></i>
+                        <a href="<?php echo htmlspecialchars($meta['material_link'] ?? '#'); ?>" target="_blank" style="color: #197B40; font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px;">
+                            <?php echo htmlspecialchars($meta['material_link'] ?? ''); ?>
+                        </a>
+                    </div>
+                    <button type="button" onclick="toggleMaterialMode(true)" style="background: transparent; border: 1px solid #ccc; color: #555; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s;">
+                        <i data-lucide="edit-2" style="width: 14px;"></i> Edit
+                    </button>
+                </div>
+
+                <form id="material-form" action="index.php?action=update_material_link" method="POST" style="display: <?php echo $hasLink ? 'none' : 'flex'; ?>; gap: 10px;">
+                    <input type="hidden" name="id_session" value="<?php echo $id; ?>">
+                    <input type="url" name="material_link" 
+                           value="<?php echo htmlspecialchars($meta['material_link'] ?? ''); ?>" 
+                           placeholder="https://..." 
+                           style="flex: 1; padding: 10px 15px; border: 1px solid #ccc; border-radius: 8px; outline: none; font-size: 13px;">
+                    
+                    <?php if ($hasLink): ?>
+                        <button type="button" onclick="toggleMaterialMode(false)" style="background: #f3f4f7; color: #666; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            Cancel
+                        </button>
+                    <?php endif; ?>
+                    
+                    <button type="submit" style="background: #197B40; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Save Link
+                    </button>
+                </form>
+            </div>
+
+            <script>
+                function toggleMaterialMode(showEdit) {
+                    const displayDiv = document.getElementById('material-display');
+                    const formDiv = document.getElementById('material-form');
+                    if (showEdit) {
+                        displayDiv.style.display = 'none';
+                        formDiv.style.display = 'flex';
+                    } else {
+                        displayDiv.style.display = 'flex';
+                        formDiv.style.display = 'none';
+                    }
+                }
+            </script>
+        <?php endif; ?>
+
         <div class="section-header">
             <i data-lucide="trophy" color="#FF9A02"></i> Top Improvers
         </div>

@@ -47,8 +47,11 @@ public function index() {
 }
 
     public function announcements() {
-        $this->checkAuth();
-
+if (!isset($_SESSION['user_id'])) {
+            header("Location: index.php?action=show_login");
+            exit();
+        }
+        
         $stmt = $this->pdo->prepare("
             SELECT a.*, u.username as author 
             FROM announcements a 

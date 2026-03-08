@@ -156,16 +156,21 @@ class Employee {
         $totalRecords = $stmtCount->fetchColumn();
 
         $sql = "SELECT 
-                    s.id_score, s.id_karyawan,
-                    t.nama_training, t.jenis AS category, t.type AS training_type, t.instructor_name AS instructor_name,t.lembaga,
-                    ts.date_start, ts.date_end, ts.method, ts.place, ts.credit_hour,
-                    s.pre, s.post
-                FROM score s
-                JOIN training_session ts ON s.id_session = ts.id_session
-                JOIN training t ON ts.id_training = t.id_training
-                $where
-                ORDER BY ts.date_start DESC
-                LIMIT $limit OFFSET $offset";
+                s.id_score, 
+                t.nama_training, 
+                t.jenis AS category,
+                ts.date_start, 
+                ts.date_end, 
+                ts.method, 
+                ts.credit_hour,
+                ts.material_link,
+                s.pre, 
+                s.post, 
+                s.status_kelulusan
+            FROM score s
+            JOIN training_session ts ON s.id_session = ts.id_session
+            JOIN training t ON ts.id_training = t.id_training
+            WHERE s.id_karyawan = :id ";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
