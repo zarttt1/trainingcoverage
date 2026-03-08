@@ -416,4 +416,57 @@ class ReportController {
         $writer->save('php://output');
         exit;
     }
+
+    public function updateMaterialLink() {
+        $this->checkAuth();
+        if (!in_array($_SESSION['role'], ['admin', 'people_development'])) {
+            die("Akses Ditolak");
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_session = $_POST['id_session'];
+            $link = $_POST['material_link'];
+                
+            $stmt = $this->pdo->prepare("UPDATE training_session SET material_link = ? WHERE id_session = ?");
+            $stmt->execute([$link, $id_session]);
+                
+            header("Location: index.php?action=details&id=" . $id_session . "&status=success");
+            exit();
+        }
+    }
+
+    public function addAnnouncement() {
+    $this->checkAuth();
+    if (!in_array($_SESSION['role'], ['admin', 'people_development'])) {
+        die("Akses Ditolak");
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $title = $_POST['title'];
+        $content = $_POST['content'];
+        $created_by = $_SESSION['user_id'];
+
+        $stmt = $this->pdo->prepare("INSERT INTO announcements (title, content, created_by) VALUES (?, ?, ?)");
+        $stmt->execute([$title, $content, $created_by]);
+        
+        header("Location: index.php?action=announcements&status=success");
+        exit();
+    }
+}
+
+public function deleteAnnouncement() {
+    $this->checkAuth();
+    if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'people_development') {
+        die("Akses Ditolak");
+    }
+
+    $id = $_GET['id'] ?? null;
+    if ($id) {
+        $stmt = $this->pdo->prepare("DELETE FROM announcements WHERE id_announcement = ?");
+        $stmt->execute([$id]);
+    }
+    
+    header("Location: index.php?action=announcements&status=deleted");
+    exit();
+}
 }

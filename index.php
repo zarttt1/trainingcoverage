@@ -8,7 +8,7 @@ require_once 'app/helpers.php';
 $action = $_GET['action'] ?? 'show_login';
 
 switch ($action) {
-    // --- AUTHENTICATION ---
+    // 1. AUTHENTICATION & LOGIN
     case 'login': 
     case 'logout': 
     case 'register':
@@ -27,13 +27,17 @@ switch ($action) {
     
     case 'show_login': 
         if (isset($_SESSION['user_id'])) { 
-            header("Location: index.php?action=dashboard"); 
+            if (($_SESSION['role'] ?? '') === 'employee') {
+                header("Location: index.php?action=employee_dashboard");
+            } else {
+                header("Location: index.php?action=dashboard"); 
+            }
             exit(); 
         } 
         require 'app/views/login.php'; 
         break;
 
-    // --- DASHBOARD ---
+    // 2. MAIN DASHBOARD
     case 'dashboard': 
     case 'filter_options': 
     case 'dashboard_search':
@@ -45,7 +49,8 @@ switch ($action) {
         elseif ($action === 'dashboard_search') $dashboard->search();
         break;
 
-    // --- UPLOADS ---
+
+     // 3. UPLOADS (Admin / HR / PD)
     case 'upload': 
     case 'upload_file': 
     case 'download_template':
@@ -57,12 +62,13 @@ switch ($action) {
         elseif ($action === 'download_template') $upload->downloadTemplate();
         break;
 
-    // --- REPORTS ---
+    // 4. REPORTS / TRAININGS
     case 'reports': 
     case 'report_search': 
     case 'details': 
     case 'details_search':
     case 'export_session':
+    case 'update_material_link':
         require_once 'app/controllers/ReportController.php';
         $report = new ReportController($pdo);
 
@@ -71,41 +77,10 @@ switch ($action) {
         elseif ($action === 'details') $report->details();
         elseif ($action === 'details_search') $report->detailsSearch();
         elseif ($action === 'export_session') $report->exportSession();
+        elseif ($action === 'update_material_link') $report->updateMaterialLink();
         break;
 
-    // --- PEOPLE DEVELOPMENT ---
-    case 'dashboard':
-    case 'employees':
-    case 'history':
-    case 'peopledev_announcements':
-    case 'add_announcement':
-    case 'peopledev_materials':
-    case 'upload_material':
-        require_once 'app/controllers/PeopleDevController.php';
-        $peopleDev = new PeopleDevController($pdo);
-
-        if ($action === 'peopledev_dashboard') {
-            $peopleDev->index();
-        } elseif ($action === 'peopledev_employees') {
-            $peopleDev->employeeReports();
-        } elseif ($action === 'peopledev_history') {
-            $peopleDev->employeeHistory();
-        } elseif ($action === 'peopledev_announcements') {
-            $peopleDev->announcements();
-        } elseif ($action === 'add_announcement') {
-            $peopleDev->addAnnouncement();
-        } elseif ($action === 'peopledev_materials') {
-            $peopleDev->materials();
-        } elseif ($action === 'upload_material') {
-            $peopleDev->uploadMaterial();
-        }
-        break;
-    // --- EMPLOYEES ---
-    case 'employee_dashboard':
-        require_once 'app/controllers/EmployeeDashboardController.php';
-        $controller = new EmployeeDashboardController($pdo);
-        $controller->index();
-        break;
+    // 5. EMPLOYEES MANAGEMENT
     case 'employees': 
     case 'employee_search': 
     case 'employee_filter_options': 
@@ -123,21 +98,47 @@ switch ($action) {
         elseif ($action === 'export_employee') $employee->exportHistoryPdf();
         break;
 
-    // --- USERS ---
+    // 6. EMPLOYEE PORTAL
+    case 'employee_dashboard':
+    case 'announcements':
+    case 'download_certificate':
+        require_once 'app/controllers/EmployeeDashboardController.php';
+        $empDash = new EmployeeDashboardController($pdo);
+        
+        if ($action === 'employee_dashboard') $empDash->index();
+        elseif ($action === 'announcements') $empDash->announcements();
+        elseif ($action === 'download_certificate') $empDash->downloadCertificate();
+        break;
+
+        // 7. ANNOUNCEMENT MANAGEMENT
+    case 'add_announcement':
+    case 'delete_announcement':
+        require_once 'app/controllers/ReportController.php';
+        $reportAdmin = new ReportController($pdo);
+        
+        if ($action === 'add_announcement') $reportAdmin->addAnnouncement();
+        elseif ($action === 'delete_announcement') $reportAdmin->deleteAnnouncement();
+        break;
+
+
+        // 8. USER MANAGEMENT (Admin)
     case 'users':
+    case 'create_user':
+    case 'delete_user':
+    case 'update_user_status':
+    case 'reset_password':
         require_once 'app/controllers/UserController.php';
         $userCtrl = new UserController($pdo);
-        $userCtrl->index(); 
+        
+        if ($action === 'users') $userCtrl->index(); 
+        elseif ($action === 'create_user') $userCtrl->create();
+        elseif ($action === 'delete_user') $userCtrl->delete();
+        elseif ($action === 'update_user_status') $userCtrl->updateStatus();
+        elseif ($action === 'reset_password') $userCtrl->resetPassword();
         break;
 
-    // --- ANNOUNCEMENTS ---
-    case 'announcements':
-        require_once 'app/controllers/EmployeeDashboardController.php';
-        $controller = new EmployeeDashboardController($pdo);
-        $controller->announcements();
-        break;
 
-    // --- DEFAULT ---
+        // DEFAULT ROUTE
     default: 
         header("Location: index.php?action=show_login"); 
         exit();
