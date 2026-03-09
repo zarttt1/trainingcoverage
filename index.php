@@ -102,12 +102,14 @@ switch ($action) {
     case 'employee_dashboard':
     case 'announcements':
     case 'download_certificate':
+    case 'my_history_search':
         require_once 'app/controllers/EmployeeDashboardController.php';
         $empDash = new EmployeeDashboardController($pdo);
         
         if ($action === 'employee_dashboard') $empDash->index();
         elseif ($action === 'announcements') $empDash->announcements();
         elseif ($action === 'download_certificate') $empDash->downloadCertificate();
+        elseif ($action === 'my_history_search') $empDash->historySearch();
         break;
 
         // 7. ANNOUNCEMENT MANAGEMENT

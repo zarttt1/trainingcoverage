@@ -22,8 +22,8 @@ try {
 
     // 4. Query Insert User
     // Menggunakan role 'people_development' sesuai ENUM database kamu
-    $sql = "INSERT INTO users (user_id, username, password, id_karyawan, role, status, requires_password_change) 
-            VALUES (UUID(), :username, :password, :id_kar, 'people_development', 'active', 0)";
+    $sql = "INSERT INTO users (user_id, username, password, id_karyawan, role, status) 
+            VALUES (UUID(), :username, :password, :id_kar, 'human_resource', 'active')";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([

@@ -27,8 +27,8 @@ try {
 
     // 4. Query Insert User
     // Mengubah role menjadi 'human_resource' sesuai ENUM di database
-    $sql = "INSERT INTO users (user_id, username, password, id_karyawan, role, status, requires_password_change) 
-            VALUES (UUID(), :username, :password, :id_kar, 'human_resource', 'active', 0)";
+    $sql = "INSERT INTO users (user_id, username, password, id_karyawan, role, status) 
+            VALUES (UUID(), :username, :password, :id_kar, 'human_resource', 'active')";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([

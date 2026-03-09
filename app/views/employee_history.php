@@ -40,7 +40,7 @@
         .hero-content { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; z-index: 2; }
         .hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: 600; }
         .hero-name { font-size: 28px; font-weight: 700; line-height: 1.1; margin: 0; display: flex; align-items: center; gap: 10px; }
-        .hero-id { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-block; width: fit-content; margin-bottom: 5px;margin-top: 4px; }
+        .hero-id { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-block; width: fit-content; margin-bottom: 5px; margin-top: 4px; }
         .hero-details-stack { display: flex; flex-direction: column; gap: 4px; font-size: 13px; opacity: 0.95; margin-top: 5px; }
         .detail-row { display: flex; align-items: center; gap: 8px; }
         .detail-row i { width: 16px; opacity: 0.7; }
@@ -130,41 +130,43 @@
 
     <div class="main-wrapper">
         <nav class="navbar">
-    <div class="logo-section">
-        <img src="public/GGF White.png" alt="GGF Logo">
-    </div>
-    
-    <div class="nav-links">
-        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'employee'): ?>
-            <a href="index.php?action=employee_dashboard" class="active">My History</a>
-            <a href="index.php?action=announcements">Announcements</a>
-        <?php else: ?>
-            <a href="index.php?action=dashboard">Dashboard</a>
-            <a href="index.php?action=reports">Trainings</a>
-            <a href="index.php?action=employees" class="active">Employees</a>
-            <a href="index.php?action=announcements">Announcements</a>
-            <?php if ($_SESSION['role'] === 'admin'): ?>
-                <a href="index.php?action=upload">Upload Data</a>
-                <a href="index.php?action=users">Users</a>
-            <?php endif; ?>
-        <?php endif; ?>
-    </div>
-
-    <div class="nav-right">
-        <div class="user-profile">
-            <div class="avatar-circle">
-                <?php echo strtoupper(substr($_SESSION['username'] ?? 'User', 0, 2)); ?>
+            <div class="logo-section">
+                <img src="public/GGF White.png" alt="GGF Logo">
             </div>
-        </div>
-        <a href="index.php?action=logout" class="btn-signout">Sign Out</a>
-    </div>
-</nav>
+            
+            <div class="nav-links">
+                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'employee'): ?>
+                    <a href="index.php?action=employee_dashboard" class="active">My History</a>
+                    <a href="index.php?action=announcements">Announcements</a>
+                <?php else: ?>
+                    <a href="index.php?action=dashboard">Dashboard</a>
+                    <a href="index.php?action=reports">Trainings</a>
+                    <a href="index.php?action=employees" class="active">Employees</a>
+                    <a href="index.php?action=announcements">Announcements</a>
+                    <?php if ($_SESSION['role'] === 'admin'): ?>
+                        <a href="index.php?action=upload">Upload Data</a>
+                        <a href="index.php?action=users">Users</a>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+
+            <div class="nav-right">
+                <div class="user-profile">
+                    <div class="avatar-circle">
+                        <?php echo strtoupper(substr($_SESSION['username'] ?? 'User', 0, 2)); ?>
+                    </div>
+                </div>
+                <a href="index.php?action=logout" class="btn-signout">Sign Out</a>
+            </div>
+        </nav>
 
         <div class="top-grid" <?php echo ($_SESSION['role'] === 'employee') ? 'style="grid-template-columns: 1fr;"' : ''; ?>>
     
             <div class="hero-banner">
                 <?php if ($_SESSION['role'] !== 'employee'): ?>
-                    <a href="index.php?action=employees" class="back-btn"><i data-lucide="arrow-left" style="width:14px;"></i> Back</a>
+                    <a href="index.php?action=employees" class="back-btn">
+                        <i data-lucide="arrow-left" style="width:14px;"></i> Back
+                    </a>
                 <?php endif; ?>
                 
                 <div class="hero-mascot">
@@ -225,7 +227,9 @@
                             
             <?php if ($_SESSION['role'] !== 'employee'): ?>
                 <div class="chart-card">
-                    <div class="chart-title"><i data-lucide="pie-chart" style="width:18px"></i> Training Focus</div>
+                    <div class="chart-title">
+                        <i data-lucide="pie-chart" style="width:18px"></i> Training Focus
+                    </div>
                     <div style="height: 80%; width: 80%; position: relative;">
                         <canvas id="mixChart"></canvas>
                     </div>
@@ -336,50 +340,58 @@
             setTimeout(() => { document.getElementById('editModalOverlay').style.display = 'none'; }, 300);
         }
 
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right', labels: { font: { family: 'Poppins', size: 11 }, boxWidth: 10, usePointStyle: true } }
-            },
-            layout: { padding: 0 }
-        };
+        const mixCanvas = document.getElementById('mixChart');
+        if (mixCanvas) {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { font: { family: 'Poppins', size: 11 }, boxWidth: 10, usePointStyle: true } }
+                },
+                layout: { padding: 0 }
+            };
 
-        const mixCtx = document.getElementById('mixChart').getContext('2d');
-        new Chart(mixCtx, {
-            type: 'doughnut',    
-            data: {
-                labels: ['Technical', 'Soft Skills'],
-                datasets: [{
-                    data: [<?php echo $count_tech; ?>, <?php echo $count_soft; ?>],
-                    backgroundColor: ['#1565C0', '#EF6C00'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: { ...commonOptions, cutout: '65%' }
-        });
+            new Chart(mixCanvas.getContext('2d'), {
+                type: 'doughnut',    
+                data: {
+                    labels: ['Technical', 'Soft Skills'],
+                    datasets: [{
+                        data: [<?php echo $count_tech ?? 0; ?>, <?php echo $count_soft ?? 0; ?>],
+                        backgroundColor: ['#1565C0', '#EF6C00'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: { ...commonOptions, cutout: '65%' }
+            });
+        }
 
         const searchInput = document.getElementById('searchInput');
-        const tableBody = document.getElementById('historyTableBody');
+        const tableBody   = document.getElementById('historyTableBody');
         const paginationContainer = document.getElementById('paginationContainer');
-        const exportBtn = document.getElementById('exportBtn');
-        const empId = "<?php echo $id; ?>";
+        const exportBtn   = document.getElementById('exportBtn');
+        const empId       = "<?php echo $id; ?>";
+        const searchAction = "<?php echo ($_SESSION['role'] === 'employee') ? 'my_history_search' : 'employee_history_search'; ?>";
 
         function changePage(page) {
             fetchData(searchInput.value, page);
         }
 
         function fetchData(query, page) {
-            exportBtn.href = `index.php?action=export_employee&id=${empId}&search=${encodeURIComponent(query)}`;
-            fetch(`index.php?action=employee_history_search&id=${empId}&ajax_search=${encodeURIComponent(query)}&page=${page}`)
+            if (exportBtn) {
+                exportBtn.href = `index.php?action=export_employee&id=${empId}&search=${encodeURIComponent(query)}`;
+            }
+            
+            const url = `index.php?action=${searchAction}&id=${empId}&ajax_search=${encodeURIComponent(query)}&page=${page}`;
+
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     tableBody.innerHTML = data.table;
                     paginationContainer.innerHTML = data.pagination;
                     lucide.createIcons();
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => console.error('Search error:', error));
         }
 
         function debounce(func, wait) {
@@ -391,7 +403,9 @@
             };
         }
 
-        searchInput.addEventListener('input', debounce(function() { fetchData(this.value, 1); }, 300));
+        searchInput.addEventListener('input', debounce(function() {
+            fetchData(this.value, 1);
+        }, 300));
     </script>
 </body>
 </html>

@@ -137,6 +137,7 @@ class Employee {
 
     public function getTrainingHistory($id, $search = '', $page = 1, $limit = 10) {
         $offset = ($page - 1) * $limit;
+        
         $params = [$id];
         $where = "WHERE s.id_karyawan = ?";
 
@@ -170,7 +171,9 @@ class Employee {
             FROM score s
             JOIN training_session ts ON s.id_session = ts.id_session
             JOIN training t ON ts.id_training = t.id_training
-            WHERE s.id_karyawan = :id ";
+            $where 
+            ORDER BY ts.date_start DESC
+            LIMIT $limit OFFSET $offset"; 
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

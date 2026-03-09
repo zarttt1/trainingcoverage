@@ -22,32 +22,32 @@ class EmployeeDashboardController {
         }
     }
 
-public function index() {
-    $this->checkAuth();
-    
-    $id = $_SESSION['id_karyawan'] ?? null; 
-    $search = $_GET['search'] ?? ''; 
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    public function index() {
+        $this->checkAuth();
+        
+        $id = $_SESSION['id_karyawan'] ?? null; 
+        $search = $_GET['search'] ?? ''; 
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
-    if (!$id) {
-        die("Akun Anda belum terhubung dengan data karyawan.");
+        if (!$id) {
+            die("Akun Anda belum terhubung dengan data karyawan.");
+        }
+
+        $employee = $this->employeeModel->getEmployeeById($id);
+        $stats = $this->employeeModel->getEmployeeStats($id);
+        
+        $historyData = $this->employeeModel->getTrainingHistory($id, $search, $page, 10);
+
+        $total_sessions = $stats['total_sessions'] ?? 0;
+        $total_hours = $stats['total_hours'] ?? 0;
+        $count_tech = $stats['count_tech'] ?? 0;
+        $count_soft = $stats['count_soft'] ?? 0;
+
+        require 'app/views/employee_history.php';
     }
 
-    $employee = $this->employeeModel->getEmployeeById($id);
-    $stats = $this->employeeModel->getEmployeeStats($id);
-    
-    $historyData = $this->employeeModel->getTrainingHistory($id, $search, $page, 10);
-
-    $total_sessions = $stats['total_sessions'] ?? 0;
-    $total_hours = $stats['total_hours'] ?? 0;
-    $count_tech = $stats['count_tech'] ?? 0;
-    $count_soft = $stats['count_soft'] ?? 0;
-
-    require 'app/views/employee_history.php';
-}
-
     public function announcements() {
-if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user_id'])) {
             header("Location: index.php?action=show_login");
             exit();
         }
@@ -62,6 +62,23 @@ if (!isset($_SESSION['user_id'])) {
         $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         require 'app/views/announcements.php';
+    }
+
+    public function historySearch() {
+        $this->checkAuth();
+        
+        $id = $_SESSION['id_karyawan'];
+        $search = $_GET['ajax_search'] ?? '';
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+        $historyData = $this->employeeModel->getTrainingHistory($id, $search, $page, 10);
+
+        $tableHtml = $this->renderHistoryRows($historyData['data']);
+        $paginationHtml = $this->renderPagination($historyData);
+
+        header('Content-Type: application/json');
+        echo json_encode(['table' => $tableHtml, 'pagination' => $paginationHtml]);
+        exit;
     }
 
     private function renderHistoryRows($data) {
@@ -122,6 +139,36 @@ if (!isset($_SESSION['user_id'])) {
     }
 
     private function renderPagination($data) {
-        return "Showing " . count($data['data']) . " of " . $data['total_records'] . " entries";
+        $page = $data['current_page'];
+        $total_pages = $data['total_pages'];
+        $total_records = $data['total_records'];
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        if ($total_records == 0) return "Showing 0 of 0 entries";
+
+        ob_start();
+        ?>
+        <div>Showing <?php echo ($offset + 1); ?> to <?php echo min($offset + $limit, $total_records); ?> of <?php echo $total_records; ?> entries</div>
+        <div class="pagination-controls">
+            <?php if($page > 1): ?>
+                <a href="#" onclick="changePage(<?php echo $page - 1; ?>); return false;" class="page-num">&lt;</a>
+            <?php endif; ?>
+            
+            <?php for($i=1; $i<=$total_pages; $i++): ?>
+                <?php if ($i == 1 || $i == $total_pages || ($i >= $page - 1 && $i <= $page + 1)): ?>
+                    <a href="#" onclick="changePage(<?php echo $i; ?>); return false;" class="page-num <?php if($i==$page) echo 'active'; ?>"><?php echo $i; ?></a>
+                <?php elseif ($i == $page - 2 || $i == $page + 2): ?>
+                    <span class="dots" style="padding: 0 5px;">...</span>
+                <?php endif; ?>
+            <?php endfor; ?>
+
+            <?php if($page < $total_pages): ?>
+                <a href="#" onclick="changePage(<?php echo $page + 1; ?>); return false;" class="page-num">&gt;</a>
+            <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 }
+?>
