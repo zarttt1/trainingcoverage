@@ -85,7 +85,7 @@
             </form>
 
             <div class="footer-text">
-                Don't have an account? <a href="index.php?action=register">Request Here</a>
+                Don't have an account? <a href="index.php?action=register">Register Here</a>
             </div>
         </div>
         

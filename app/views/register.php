@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GGF - Request Account</title>
+    <title>GGF - Register Account</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="public/icons/icon.png">
 
@@ -48,7 +48,7 @@
     <div class="login-section">
         <div class="header-content">
             <img src="public/GGF Green.png" alt="GGF Logo" class="logo-placeholder">
-            <h2>Request Account</h2>
+            <h2>Register Account</h2>
             <p class="subtitle">Daftar menggunakan Index Karyawan Anda.</p>
         </div>
 
