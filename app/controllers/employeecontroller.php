@@ -281,13 +281,11 @@ public function exportHistoryPdf() {
     $this->checkAuth();
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     
-    // Pastikan data user dan history diambil sebelum ob_start()
     $user = $this->empModel->getEmployeeById($id);
     $history = $this->empModel->getTrainingHistory($id, '', 1, 1000);
 
     if (!$user) die("Employee not found.");
 
-    // Mulai capture output HTML
     ob_start();
     require 'app/views/pdf_report_template.php'; 
     $html = ob_get_clean();
@@ -301,7 +299,6 @@ public function exportHistoryPdf() {
     $dompdf->setPaper('A4', 'portrait');
     $dompdf->render();
 
-    // Hapus buffer agar tidak ada spasi/error yang masuk ke PDF
     if (ob_get_length()) ob_end_clean();
 
     $dompdf->stream("Employee_Report_" . str_replace(' ', '_', $user['nama_karyawan']) . ".pdf", ["Attachment" => true]);
