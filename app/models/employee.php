@@ -158,6 +158,7 @@ class Employee {
 
         $sql = "SELECT 
                 s.id_score, 
+                s.id_karyawan,
                 t.nama_training, 
                 t.jenis AS category,
                 ts.date_start, 
