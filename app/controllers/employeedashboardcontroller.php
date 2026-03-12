@@ -1,5 +1,7 @@
 <?php
 // app/controllers/EmployeeDashboardController.php
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 require_once __DIR__ . '/../models/Employee.php';
 require_once __DIR__ . '/../models/Training.php';
@@ -170,5 +172,73 @@ class EmployeeDashboardController {
         <?php
         return ob_get_clean();
     }
+
+    public function downloadCertificate() {
+        $this->checkAuth();
+
+        $id_score = $_GET['id'] ?? null;
+        if (!$id_score) {
+            die("ID Sertifikat tidak valid.");
+        }
+
+        $logo_path = 'app/public/icons/GGF Green.jpg'; 
+        $logo_base64 = '';
+
+        if (file_exists($logo_path)) {
+            $type = pathinfo($logo_path, PATHINFO_EXTENSION);
+            $data_img = file_get_contents($logo_path);
+            $logo_base64 = 'data:image/' . $type . ';base64,' . base64_encode($data_img);
+        }
+
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT 
+                    k.nama_karyawan, 
+                    t.nama_training,
+                    t.instructor_name,
+                    ts.date_start
+                FROM score s
+                JOIN karyawan k ON s.id_karyawan = k.id_karyawan
+                JOIN training_session ts ON s.id_session = ts.id_session
+                JOIN training t ON ts.id_training = t.id_training
+                WHERE s.id_score = ?
+            ");
+            $stmt->execute([$id_score]);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$data) {
+                die("Data sertifikat tidak ditemukan.");
+            }
+
+            $nama_user = $data['nama_karyawan'];
+            $nama_training = $data['nama_training'];
+            $instructor_name = $data['instructor_name'] ?? 'Instructor'; 
+            $tanggal_training = $data['date_start'];
+
+            $options = new Options();
+            $options->set('isRemoteEnabled', true); 
+            $options->set('defaultFont', 'Helvetica');
+            $dompdf = new Dompdf($options);
+
+            ob_start();
+            require __DIR__ . '/../views/sertifikat.php'; 
+            $html = ob_get_clean();
+
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'landscape');
+            $dompdf->render();
+
+            $clean_name = str_replace(' ', '_', $nama_user);
+            $filename = "Sertifikat_" . $clean_name . ".pdf";
+            
+            if (ob_get_length()) ob_end_clean();
+            
+            $dompdf->stream($filename, ["Attachment" => true]);
+            exit;
+
+        } catch (PDOException $e) {
+            die("Database Error: " . $e->getMessage());
+        }
+    }
 }
-?>
+?>  
